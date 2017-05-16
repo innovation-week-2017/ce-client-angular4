@@ -13,6 +13,8 @@ var http_1 = require("@angular/http");
 var app_routing_1 = require("./app.routing");
 var dashboard_page_1 = require("./components/dashboard.page");
 var auth_service_1 = require("./services/auth.service");
+var addressbook_page_1 = require("./components/addressbook.page");
+var data_service_1 = require("./services/data.service");
 var AppModule = (function () {
     function AppModule() {
     }
@@ -21,8 +23,8 @@ var AppModule = (function () {
 AppModule = __decorate([
     core_1.NgModule({
         imports: [platform_browser_1.BrowserModule, forms_1.FormsModule, http_1.HttpModule, app_routing_1.AppRouting],
-        declarations: [app_component_1.AppComponent, dashboard_page_1.DashboardPageComponent],
-        providers: [auth_service_1.AuthenticationServiceProvider],
+        declarations: [app_component_1.AppComponent, dashboard_page_1.DashboardPageComponent, addressbook_page_1.AddressBookPageComponent],
+        providers: [auth_service_1.AuthenticationServiceProvider, data_service_1.DataServiceProvider],
         bootstrap: [app_component_1.AppComponent]
     })
 ], AppModule);

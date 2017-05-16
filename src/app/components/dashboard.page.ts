@@ -1,7 +1,8 @@
 
 import {Component, OnInit, Inject} from "@angular/core";
 import {ActivatedRoute} from "@angular/router";
-import {IAuthenticationService} from "../services/auth.service";
+import {IDataService} from "../services/data.service";
+import {AddressBook} from "../models/address-book.model";
 
 
 /**
@@ -13,12 +14,17 @@ import {IAuthenticationService} from "../services/auth.service";
     templateUrl: "dashboard.page.html",
     styleUrls: ["dashboard.page.css"]
 })
-export class DashboardPageComponent implements OnInit {
+export class DashboardPageComponent {
 
-    constructor(private route: ActivatedRoute, @Inject(IAuthenticationService) private authService: IAuthenticationService) {
+    books: Promise<AddressBook[]>;
+
+    constructor(private route: ActivatedRoute, @Inject(IDataService) private dataService: IDataService) {
+        this.books = dataService.getAddressBooks();
     }
 
-    ngOnInit(): void {
+    addressBooks(): Promise<AddressBook[]> {
+        console.info("Getting address books.");
+        return this.books;
     }
 
 }

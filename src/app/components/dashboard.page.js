@@ -13,16 +13,19 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 var core_1 = require("@angular/core");
 var router_1 = require("@angular/router");
-var auth_service_1 = require("../services/auth.service");
+var data_service_1 = require("../services/data.service");
 /**
  * The Dashboard Page component - models the logical root path of the application.
  */
 var DashboardPageComponent = (function () {
-    function DashboardPageComponent(route, authService) {
+    function DashboardPageComponent(route, dataService) {
         this.route = route;
-        this.authService = authService;
+        this.dataService = dataService;
+        this.books = dataService.getAddressBooks();
     }
-    DashboardPageComponent.prototype.ngOnInit = function () {
+    DashboardPageComponent.prototype.addressBooks = function () {
+        console.info("Getting address books.");
+        return this.books;
     };
     return DashboardPageComponent;
 }());
@@ -33,7 +36,7 @@ DashboardPageComponent = __decorate([
         templateUrl: "dashboard.page.html",
         styleUrls: ["dashboard.page.css"]
     }),
-    __param(1, core_1.Inject(auth_service_1.IAuthenticationService)),
+    __param(1, core_1.Inject(data_service_1.IDataService)),
     __metadata("design:paramtypes", [router_1.ActivatedRoute, Object])
 ], DashboardPageComponent);
 exports.DashboardPageComponent = DashboardPageComponent;

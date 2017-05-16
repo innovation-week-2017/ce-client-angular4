@@ -6,11 +6,13 @@ import {HttpModule} from "@angular/http";
 import {AppRouting} from "./app.routing";
 import {DashboardPageComponent} from "./components/dashboard.page";
 import {AuthenticationServiceProvider} from "./services/auth.service";
+import {AddressBookPageComponent} from "./components/addressbook.page";
+import {DataServiceProvider} from "./services/data.service";
 
 @NgModule({
   imports:      [ BrowserModule, FormsModule, HttpModule, AppRouting ],
-  declarations: [ AppComponent, DashboardPageComponent ],
-  providers:    [ AuthenticationServiceProvider ],
+  declarations: [ AppComponent, DashboardPageComponent, AddressBookPageComponent ],
+  providers:    [ AuthenticationServiceProvider, DataServiceProvider ],
   bootstrap:    [ AppComponent ]
 })
 export class AppModule { }

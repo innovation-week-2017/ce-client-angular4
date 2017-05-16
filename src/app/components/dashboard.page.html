@@ -10,12 +10,31 @@
                 </div>
                 <div class="card-pf-body">
                     <p>
-                        Use this page to select an addres book to concurrently edit (along with other users)!
+                        Use this page to select an address book (see below) to concurrently edit (along with other users)!
                     </p>
                 </div>
             </div>
         </div>
     </div>
     <div class="row row-cards-pf">
+        <div class="col-md-4" *ngFor="let book of addressBooks() | async">
+            <div class="card-pf">
+                <div class="card-pf-heading">
+                    <h2 class="card-pf-title">
+                        <span class="fa fa-fw fa-address-book"></span>
+                        <span>{{ book.name }}</span>
+                    </h2>
+                </div>
+                <div class="card-pf-body">
+                    <p>
+                        This is the description of the Address Book named <strong>{{ book.name }}</strong> (with ID '{{ book.id }}')!  Click the
+                        "Edit" button below to make (concurrent!) changes to this address book.
+                    </p>
+                    <div>
+                        <a href="#" class="btn btn-default">Edit</a>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>

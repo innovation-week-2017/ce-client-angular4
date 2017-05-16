@@ -17,8 +17,8 @@ export interface IAuthenticationService {
      */
     injectAuthHeaders(headers: Headers): void;
 }
-
 export const IAuthenticationService = new InjectionToken("IAuthenticationService");
+
 
 export class AutoAuthenticationService implements IAuthenticationService {
 
