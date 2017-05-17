@@ -8,10 +8,12 @@ import {DashboardPageComponent} from "./components/dashboard.page";
 import {AuthenticationServiceProvider} from "./services/auth.service";
 import {AddressBookPageComponent} from "./components/addressbook.page";
 import {DataServiceProvider} from "./services/data.service";
+import {AddressForm} from "./components/address.form";
 
 @NgModule({
   imports:      [ BrowserModule, FormsModule, HttpModule, AppRouting ],
-  declarations: [ AppComponent, DashboardPageComponent, AddressBookPageComponent ],
+  declarations: [ AppComponent, DashboardPageComponent, AddressBookPageComponent,
+                  AddressForm],
   providers:    [ AuthenticationServiceProvider, DataServiceProvider ],
   bootstrap:    [ AppComponent ]
 })

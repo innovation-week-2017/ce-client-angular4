@@ -1,2 +1,81 @@
-<div class="container-fluid">
+<div class="container-fluid" *ngIf="pageLoaded">
+    <div class="row toolbar-pf">
+        <div class="col-sm-12">
+            <form class="toolbar-pf-actions" (submit)="filter()" #filterForm="ngForm">
+                <div class="form-group toolbar-pf-filter">
+                    <label class="sr-only" for="filter">Name</label>
+                    <div class="input-group" style="width: 100%">
+                        <input name="name-filter" [(ngModel)]="filters.nameFilter" type="text" class="form-control name-filter" id="filter" placeholder="Filter by name...">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <button class="btn btn-link" type="button" (click)="toggleSortDirection()">
+                        <span *ngIf="filters.sortDirection === 'ASC'" class="fa fa-sort-alpha-asc"></span>
+                        <span *ngIf="filters.sortDirection === 'DESC'" class="fa fa-sort-alpha-desc"></span>
+                    </button>
+                </div>
+                <div class="form-group">
+                    <button class="btn btn-danger" type="button" [disabled]="selectedAddress === null" (click)="deleteSelectedAddresses()">Delete</button>
+                </div>
+                <div class="form-group">
+                    <button class="btn btn-default">Add Address</button>
+                </div>
+                <div class="form-group pull-right">
+                    <a [routerLink]="['/']">(back to dashboard)</a>
+                </div>
+            </form>
+            <div class="row toolbar-pf-results">
+                <div class="col-sm-12">
+                    <h5>{{ filteredAddresses.length }} Addresses found <a *ngIf="addressBook.addresses.length != filteredAddresses.length"
+                            class="clear-filters" (click)="clearFilters()">(out of {{ addressBook.addresses.length }} total)</a></h5>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+
+        <!-- The list of Addresses -->
+        <div class="list-group list-view-pf" [class.col-md-6]="selectedAddress !== null">
+            <div class="list-group-item list-view-pf-stacked" *ngFor="let address of filteredAddresses"
+                 [class.selected]="isSelected(address)"
+                 (click)="toggleAddressSelected(address)">
+                <div class="list-view-pf-main-info">
+                    <div class="list-view-pf-left">
+                        <span class="fa fa-address-card"></span>
+                    </div>
+                    <div class="list-view-pf-body">
+                        <div class="list-view-pf-description">
+                            <div class="list-group-item-heading">
+                                <span>{{ address.name }}</span>
+                            </div>
+                            <div class="list-group-item-text">{{ toSummary(address) }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Selected Address Card -->
+        <div class="col-md-6" *ngIf="selectedAddress !== null">
+            <div class="card-pf card-pf-accented">
+                <div class="card-pf-heading">
+                    <h2 class="card-pf-title">
+                        <span class="fa fa-fw fa-address-card"></span>
+                        <strong>{{ selectedAddress.name }}</strong>
+                    </h2>
+                </div>
+                <div class="card-pf-body">
+                    <address-form [address]="selectedAddress" (onAddressChanged)="updateAddress($event)" (onCanceled)="selectedAddress = null"></address-form>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<div class="container" *ngIf="!pageLoaded">
+    <div class="alert alert-info">
+        <p><span class="spinner spinner-xs spinner-inline"></span> Loading data...</p>
+    </div>
 </div>

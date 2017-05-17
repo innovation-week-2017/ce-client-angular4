@@ -31,7 +31,8 @@
                         "Edit" button below to make (concurrent!) changes to this address book.
                     </p>
                     <div>
-                        <a href="#" class="btn btn-default">Edit</a>
+                        <a [routerLink]="['books', book.id]" class="btn btn-primary">Edit</a>
+                        <a href="#" class="btn btn-danger">Delete</a>
                     </div>
                 </div>
             </div>
