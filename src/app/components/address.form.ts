@@ -1,5 +1,6 @@
 import {Component, EventEmitter, Input, Output} from "@angular/core";
 import {Address} from "../models/address.model";
+import {ModelUtils} from "../util/model.util";
 
 export interface IParticipantSelectionResolver {
 
@@ -46,15 +47,7 @@ export class AddressForm {
     }
 
     public clone(address: Address): Address {
-        let rval: Address = new Address();
-        rval.name = address.name;
-        rval.address1 = address.address1;
-        rval.address2 = address.address2;
-        rval.city = address.city;
-        rval.state = address.state;
-        rval.zip = address.zip;
-        rval.country = address.country;
-        return rval;
+        return ModelUtils.clone(address);
     }
 
     public isDirty(): boolean {

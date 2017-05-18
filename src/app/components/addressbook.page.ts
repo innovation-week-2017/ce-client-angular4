@@ -3,9 +3,13 @@ import {Component, OnInit, Inject, OnDestroy} from "@angular/core";
 import {ActivatedRoute} from "@angular/router";
 import {IAuthenticationService} from "../services/auth.service";
 import {AddressBookWithData} from "../models/address-book.model";
-import {AddressBookEditingSession, IDataService, NavigationMessage} from "../services/data.service";
+import {AddressBookEditingSession, CreateMessage, IDataService, NavigationMessage} from "../services/data.service";
 import {Address} from "../models/address.model";
 import {IParticipantSelectionResolver} from "./address.form";
+import {UpdateAddressCommand} from "../commands/update.command";
+import {ICommand} from "../commands/command";
+import {DeleteAddressCommand} from "../commands/delete.command";
+import {CreateAddressCommand} from "../commands/create.command";
 
 
 class Filters {
@@ -78,6 +82,23 @@ export class AddressBookPageComponent implements OnInit, OnDestroy, IParticipant
                     this.editingSession.navHandler( (navMessage) => {
                         console.info("[AddressBookPageComponent] Participant Selection Change: " + navMessage.addressName);
                         this.participantSelections[navMessage.from] = navMessage;
+                    });
+                    this.editingSession.commandHandler( (message) => {
+                        console.info("[AddressBookPageComponent] Participant executed command: " + message.type);
+                        if (message.type === "create") {
+                            let command: ICommand = new CreateAddressCommand((<any>message).addressName);
+                            command.execute(this.addressBook);
+                            this.filter();
+                        }
+                        if (message.type === "delete") {
+                            let command: ICommand = new DeleteAddressCommand((<any>message).addressName);
+                            command.execute(this.addressBook);
+                            this.filter();
+                        }
+                        if (message.type === "update") {
+                            let command: ICommand = new UpdateAddressCommand((<any>message).address);
+                            command.execute(this.addressBook);
+                        }
                     });
                 });
                 this.filter();
@@ -166,23 +187,20 @@ export class AddressBookPageComponent implements OnInit, OnDestroy, IParticipant
     }
 
     public deleteSelectedAddresses(): void {
-        let idx: number = this.addressBook.addresses.indexOf(this.selectedAddress);
-        this.addressBook.addresses.splice(idx, 1);
+        let command: ICommand = new DeleteAddressCommand(this.selectedAddress.name);
+        command.execute(this.addressBook);
+
+        this.editingSession.sendDelete(this.selectedAddress.name);
+
         this.selectedAddress = null;
         this.filter();
     }
 
     public updateAddress(updatedAddress: Address): void {
-        this.addressBook.addresses.forEach( address => {
-            if (address.name === updatedAddress.name) {
-                address.address1 = updatedAddress.address1;
-                address.address2 = updatedAddress.address2;
-                address.city = updatedAddress.city;
-                address.state = updatedAddress.state;
-                address.zip = updatedAddress.zip;
-                address.country = updatedAddress.country;
-            }
-        });
+        let command: ICommand = new UpdateAddressCommand(updatedAddress);
+        command.execute(this.addressBook);
+
+        this.editingSession.sendUpdate(updatedAddress);
     }
 
     public focusOnAddressField(fieldName: string): void {

@@ -10,6 +10,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 var core_1 = require("@angular/core");
 var address_model_1 = require("../models/address.model");
+var model_util_1 = require("../util/model.util");
 var AddressForm = (function () {
     function AddressForm() {
         this.onAddressChanged = new core_1.EventEmitter();
@@ -38,15 +39,7 @@ var AddressForm = (function () {
         this.onCanceled.emit(true);
     };
     AddressForm.prototype.clone = function (address) {
-        var rval = new address_model_1.Address();
-        rval.name = address.name;
-        rval.address1 = address.address1;
-        rval.address2 = address.address2;
-        rval.city = address.city;
-        rval.state = address.state;
-        rval.zip = address.zip;
-        rval.country = address.country;
-        return rval;
+        return model_util_1.ModelUtils.clone(address);
     };
     AddressForm.prototype.isDirty = function () {
         if (this.model.name !== this.address.name) {

@@ -45,6 +45,36 @@ var NavigationMessage = (function (_super) {
     return NavigationMessage;
 }(Message));
 exports.NavigationMessage = NavigationMessage;
+var CreateMessage = (function (_super) {
+    __extends(CreateMessage, _super);
+    function CreateMessage() {
+        var _this = _super.call(this) || this;
+        _this.type = "create";
+        return _this;
+    }
+    return CreateMessage;
+}(Message));
+exports.CreateMessage = CreateMessage;
+var DeleteMessage = (function (_super) {
+    __extends(DeleteMessage, _super);
+    function DeleteMessage() {
+        var _this = _super.call(this) || this;
+        _this.type = "delete";
+        return _this;
+    }
+    return DeleteMessage;
+}(Message));
+exports.DeleteMessage = DeleteMessage;
+var UpdateMessage = (function (_super) {
+    __extends(UpdateMessage, _super);
+    function UpdateMessage() {
+        var _this = _super.call(this) || this;
+        _this.type = "update";
+        return _this;
+    }
+    return UpdateMessage;
+}(Message));
+exports.UpdateMessage = UpdateMessage;
 var AddressBookEditingSession = (function () {
     function AddressBookEditingSession(username, socket, connectHandler) {
         var _this = this;
@@ -69,6 +99,15 @@ var AddressBookEditingSession = (function () {
             if (msg.type === "nav" && _this._navHandler) {
                 _this._navHandler(msg);
             }
+            if (msg.type === "create" && _this._navHandler) {
+                _this._cmdHandler(msg);
+            }
+            if (msg.type === "delete" && _this._navHandler) {
+                _this._cmdHandler(msg);
+            }
+            if (msg.type === "update" && _this._navHandler) {
+                _this._cmdHandler(msg);
+            }
         };
         socket.onclose = function (closeEvent) {
             console.info("Detected a CLOSE event!");
@@ -76,6 +115,9 @@ var AddressBookEditingSession = (function () {
     }
     AddressBookEditingSession.prototype.navHandler = function (handler) {
         this._navHandler = handler;
+    };
+    AddressBookEditingSession.prototype.commandHandler = function (handler) {
+        this._cmdHandler = handler;
     };
     AddressBookEditingSession.prototype.readMessage = function (rawMessage) {
         var jsMessage = JSON.parse(rawMessage);
@@ -88,13 +130,34 @@ var AddressBookEditingSession = (function () {
         if (jsMessage.type === "nav") {
             return jsMessage;
         }
+        if (jsMessage.type === "create") {
+            return jsMessage;
+        }
+        if (jsMessage.type === "delete") {
+            return jsMessage;
+        }
+        if (jsMessage.type === "update") {
+            return jsMessage;
+        }
         throw Error("Failed to parse message: " + rawMessage);
     };
-    AddressBookEditingSession.prototype.sendNavigation = function (address, fieldName) {
+    AddressBookEditingSession.prototype.sendNavigation = function (name, fieldName) {
         var msg = new NavigationMessage();
         msg.from = this.username;
-        msg.addressName = address;
+        msg.addressName = name;
         msg.fieldName = fieldName;
+        this.socket.send(JSON.stringify(msg));
+    };
+    AddressBookEditingSession.prototype.sendDelete = function (name) {
+        var msg = new DeleteMessage();
+        msg.from = this.username;
+        msg.addressName = name;
+        this.socket.send(JSON.stringify(msg));
+    };
+    AddressBookEditingSession.prototype.sendUpdate = function (address) {
+        var msg = new UpdateMessage();
+        msg.from = this.username;
+        msg.address = address;
         this.socket.send(JSON.stringify(msg));
     };
     AddressBookEditingSession.prototype.close = function () {

@@ -14,6 +14,9 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 var core_1 = require("@angular/core");
 var router_1 = require("@angular/router");
 var data_service_1 = require("../services/data.service");
+var update_command_1 = require("../commands/update.command");
+var delete_command_1 = require("../commands/delete.command");
+var create_command_1 = require("../commands/create.command");
 var Filters = (function () {
     function Filters(params) {
         this.reset();
@@ -66,6 +69,23 @@ var AddressBookPageComponent = (function () {
                     _this.editingSession.navHandler(function (navMessage) {
                         console.info("[AddressBookPageComponent] Participant Selection Change: " + navMessage.addressName);
                         _this.participantSelections[navMessage.from] = navMessage;
+                    });
+                    _this.editingSession.commandHandler(function (message) {
+                        console.info("[AddressBookPageComponent] Participant executed command: " + message.type);
+                        if (message.type === "create") {
+                            var command = new create_command_1.CreateAddressCommand(message.addressName);
+                            command.execute(_this.addressBook);
+                            _this.filter();
+                        }
+                        if (message.type === "delete") {
+                            var command = new delete_command_1.DeleteAddressCommand(message.addressName);
+                            command.execute(_this.addressBook);
+                            _this.filter();
+                        }
+                        if (message.type === "update") {
+                            var command = new update_command_1.UpdateAddressCommand(message.address);
+                            command.execute(_this.addressBook);
+                        }
                     });
                 });
                 _this.filter();
@@ -147,22 +167,16 @@ var AddressBookPageComponent = (function () {
         this.filter();
     };
     AddressBookPageComponent.prototype.deleteSelectedAddresses = function () {
-        var idx = this.addressBook.addresses.indexOf(this.selectedAddress);
-        this.addressBook.addresses.splice(idx, 1);
+        var command = new delete_command_1.DeleteAddressCommand(this.selectedAddress.name);
+        command.execute(this.addressBook);
+        this.editingSession.sendDelete(this.selectedAddress.name);
         this.selectedAddress = null;
         this.filter();
     };
     AddressBookPageComponent.prototype.updateAddress = function (updatedAddress) {
-        this.addressBook.addresses.forEach(function (address) {
-            if (address.name === updatedAddress.name) {
-                address.address1 = updatedAddress.address1;
-                address.address2 = updatedAddress.address2;
-                address.city = updatedAddress.city;
-                address.state = updatedAddress.state;
-                address.zip = updatedAddress.zip;
-                address.country = updatedAddress.country;
-            }
-        });
+        var command = new update_command_1.UpdateAddressCommand(updatedAddress);
+        command.execute(this.addressBook);
+        this.editingSession.sendUpdate(updatedAddress);
     };
     AddressBookPageComponent.prototype.focusOnAddressField = function (fieldName) {
         this.editingSession.sendNavigation(this.selectedAddress.name, fieldName);

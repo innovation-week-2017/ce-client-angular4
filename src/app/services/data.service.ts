@@ -4,6 +4,7 @@ import {Http, RequestOptions, Headers} from "@angular/http";
 import {IAuthenticationService} from "./auth.service";
 import {BehaviorSubject} from "rxjs/BehaviorSubject";
 import {Observable} from "rxjs/Observable";
+import {Address} from "../models/address.model";
 
 
 var ENABLE_MOCK_DATA_SERVICE = false;
@@ -43,12 +44,49 @@ export class NavigationMessage extends Message {
 
 }
 
+
+export class CreateMessage extends Message {
+
+    addressName: string;
+
+    constructor() {
+        super();
+        this.type = "create";
+    }
+
+}
+
+export class DeleteMessage extends Message {
+
+    addressName: string;
+
+    constructor() {
+        super();
+        this.type = "delete";
+    }
+
+}
+
+
+export class UpdateMessage extends Message {
+
+    address: Address;
+
+    constructor() {
+        super();
+        this.type = "update";
+    }
+
+}
+
+
 export class AddressBookEditingSession {
 
     private currentParticipants: string[] = [];
     private _participants: BehaviorSubject<string[]> = new BehaviorSubject([]);
     public participants: Observable<string[]> = this._participants.asObservable();
     private _navHandler: ((message: NavigationMessage) => void);
+    private _cmdHandler: ((message: DeleteMessage|CreateMessage|UpdateMessage) => void);
 
     constructor(private username: string, private socket: WebSocket, connectHandler: () => void) {
         socket.onopen = (openEvent) => {
@@ -67,6 +105,15 @@ export class AddressBookEditingSession {
             if (msg.type === "nav" && this._navHandler) {
                 this._navHandler(<NavigationMessage>msg);
             }
+            if (msg.type === "create" && this._navHandler) {
+                this._cmdHandler(<CreateMessage>msg);
+            }
+            if (msg.type === "delete" && this._navHandler) {
+                this._cmdHandler(<DeleteMessage>msg);
+            }
+            if (msg.type === "update" && this._navHandler) {
+                this._cmdHandler(<UpdateMessage>msg);
+            }
         };
         socket.onclose = (closeEvent) => {
             console.info("Detected a CLOSE event!");
@@ -75,6 +122,10 @@ export class AddressBookEditingSession {
 
     public navHandler(handler: (message: NavigationMessage) => void): void {
         this._navHandler = handler;
+    }
+
+    public commandHandler(handler: ((message: DeleteMessage|CreateMessage|UpdateMessage) => void)): void {
+        this._cmdHandler = handler;
     }
 
     private readMessage(rawMessage: string): Message {
@@ -88,14 +139,37 @@ export class AddressBookEditingSession {
         if (jsMessage.type === "nav") {
             return <NavigationMessage>jsMessage;
         }
+        if (jsMessage.type === "create") {
+            return <CreateMessage>jsMessage;
+        }
+        if (jsMessage.type === "delete") {
+            return <DeleteMessage>jsMessage;
+        }
+        if (jsMessage.type === "update") {
+            return <UpdateMessage>jsMessage;
+        }
         throw Error("Failed to parse message: " + rawMessage);
     }
 
-    public sendNavigation(address: string, fieldName?: string): void {
+    public sendNavigation(name: string, fieldName?: string): void {
         let msg: NavigationMessage = new NavigationMessage();
         msg.from = this.username;
-        msg.addressName = address;
+        msg.addressName = name;
         msg.fieldName = fieldName;
+        this.socket.send(JSON.stringify(msg));
+    }
+
+    public sendDelete(name: string): void {
+        let msg: DeleteMessage = new DeleteMessage();
+        msg.from = this.username;
+        msg.addressName = name;
+        this.socket.send(JSON.stringify(msg));
+    }
+
+    public sendUpdate(address: Address): void {
+        let msg: UpdateMessage = new UpdateMessage();
+        msg.from = this.username;
+        msg.address = address;
         this.socket.send(JSON.stringify(msg));
     }
 
