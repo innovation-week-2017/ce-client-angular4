@@ -39,6 +39,7 @@
         <div class="list-group list-view-pf" [class.col-md-6]="selectedAddress !== null">
             <div class="list-group-item list-view-pf-stacked" *ngFor="let address of filteredAddresses"
                  [class.selected]="isSelected(address)"
+                 [class.pselected]="isParticipantSelected(address)"
                  (click)="toggleAddressSelected(address)">
                 <div class="list-view-pf-main-info">
                     <div class="list-view-pf-left">
@@ -66,7 +67,11 @@
                     </h2>
                 </div>
                 <div class="card-pf-body">
-                    <address-form [address]="selectedAddress" (onAddressChanged)="updateAddress($event)" (onCanceled)="selectedAddress = null"></address-form>
+                    <address-form [address]="selectedAddress"
+                                  [resolver]="resolver()"
+                                  (onFieldFocused)="focusOnAddressField($event)"
+                                  (onAddressChanged)="updateAddress($event)"
+                                  (onCanceled)="selectedAddress = null"></address-form>
                 </div>
             </div>
         </div>

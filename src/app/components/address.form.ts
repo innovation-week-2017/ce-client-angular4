@@ -1,6 +1,12 @@
 import {Component, EventEmitter, Input, Output} from "@angular/core";
 import {Address} from "../models/address.model";
 
+export interface IParticipantSelectionResolver {
+
+    isParticipantSelected(address: Address, fieldName?: string): boolean;
+
+}
+
 @Component({
     moduleId: module.id,
     selector: "address-form",
@@ -20,8 +26,11 @@ export class AddressForm {
         this.model = this.clone(address);
     }
 
+    @Input() resolver: IParticipantSelectionResolver;
+
     @Output() onAddressChanged: EventEmitter<Address> = new EventEmitter<Address>();
     @Output() onCanceled: EventEmitter<boolean> = new EventEmitter<boolean>();
+    @Output() onFieldFocused: EventEmitter<string> = new EventEmitter<string>();
 
     public save(): void {
         this.onAddressChanged.emit(this.model);
@@ -71,6 +80,20 @@ export class AddressForm {
             return true;
         }
         return false;
+    }
+
+    public focusOn(fieldName: string): void {
+        this.onFieldFocused.emit(fieldName);
+    }
+
+    public focusAway(fieldName: string): void {
+        this.onFieldFocused.emit(null);
+    }
+
+    public isParticipantSelected(fieldName: string): boolean {
+        if (this.resolver) {
+            return this.resolver.isParticipantSelected(this.address, fieldName);
+        }
     }
 
 }

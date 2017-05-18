@@ -1,3 +1,11 @@
+.list-group-item {
+    cursor: pointer;
+}
+
+.list-group-item.pselected {
+    border: 2px dashed indianred;
+}
+
 .list-group-item.selected {
     background-color: bisque;
 }

@@ -7,6 +7,7 @@ var __extends = (this && this.__extends) || function (d, b) {
 var core_1 = require("@angular/core");
 var http_1 = require("@angular/http");
 var auth_service_1 = require("./auth.service");
+var BehaviorSubject_1 = require("rxjs/BehaviorSubject");
 var ENABLE_MOCK_DATA_SERVICE = false;
 var Message = (function () {
     function Message() {
@@ -45,20 +46,37 @@ var NavigationMessage = (function (_super) {
 }(Message));
 exports.NavigationMessage = NavigationMessage;
 var AddressBookEditingSession = (function () {
-    function AddressBookEditingSession(socket, connectHandler, messageHandler) {
+    function AddressBookEditingSession(username, socket, connectHandler) {
         var _this = this;
+        this.username = username;
         this.socket = socket;
+        this.currentParticipants = [];
+        this._participants = new BehaviorSubject_1.BehaviorSubject([]);
+        this.participants = this._participants.asObservable();
         socket.onopen = function (openEvent) {
             connectHandler();
         };
         socket.onmessage = function (msgEvent) {
             var msg = _this.readMessage(msgEvent.data);
-            messageHandler(msg);
+            if (msg.type === "join") {
+                _this.currentParticipants.push(msg.from);
+                _this._participants.next(_this.currentParticipants);
+            }
+            if (msg.type === "leave") {
+                _this.currentParticipants.splice(_this.currentParticipants.indexOf(msg.from), 1);
+                _this._participants.next(_this.currentParticipants);
+            }
+            if (msg.type === "nav" && _this._navHandler) {
+                _this._navHandler(msg);
+            }
         };
         socket.onclose = function (closeEvent) {
             console.info("Detected a CLOSE event!");
         };
     }
+    AddressBookEditingSession.prototype.navHandler = function (handler) {
+        this._navHandler = handler;
+    };
     AddressBookEditingSession.prototype.readMessage = function (rawMessage) {
         var jsMessage = JSON.parse(rawMessage);
         if (jsMessage.type === "join") {
@@ -67,10 +85,17 @@ var AddressBookEditingSession = (function () {
         if (jsMessage.type === "leave") {
             return jsMessage;
         }
-        if (jsMessage.type === "navigation") {
+        if (jsMessage.type === "nav") {
             return jsMessage;
         }
         throw Error("Failed to parse message: " + rawMessage);
+    };
+    AddressBookEditingSession.prototype.sendNavigation = function (address, fieldName) {
+        var msg = new NavigationMessage();
+        msg.from = this.username;
+        msg.addressName = address;
+        msg.fieldName = fieldName;
+        this.socket.send(JSON.stringify(msg));
     };
     AddressBookEditingSession.prototype.close = function () {
         this.socket.close();
@@ -119,11 +144,11 @@ var RemoteDataService = (function () {
         // TODO implement this!
         return Promise.resolve(true);
     };
-    RemoteDataService.prototype.editAddressBook = function (id, connectHandler, messageHandler) {
+    RemoteDataService.prototype.editAddressBook = function (id, connectHandler) {
         var url = this.endpoint("ws", "/editAddressBook/:bookId/:user", { bookId: id, user: this.authService.getAuthenticatedUser() });
         console.info("[RemoteDataService] Connecting to websocket at: " + url);
         var ws = new WebSocket(url);
-        return new AddressBookEditingSession(ws, connectHandler, messageHandler);
+        return new AddressBookEditingSession(this.authService.getAuthenticatedUser(), ws, connectHandler);
     };
     return RemoteDataService;
 }());
@@ -192,9 +217,8 @@ var MockDataService = (function () {
     MockDataService.prototype.deleteAddressBook = function (id) {
         return Promise.resolve(true);
     };
-    MockDataService.prototype.editAddressBook = function (id) {
-        // TODO do something more appropriate here!
-        return null;
+    MockDataService.prototype.editAddressBook = function (id, connectHandler) {
+        return undefined;
     };
     return MockDataService;
 }());

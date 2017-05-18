@@ -14,6 +14,7 @@ var AddressForm = (function () {
     function AddressForm() {
         this.onAddressChanged = new core_1.EventEmitter();
         this.onCanceled = new core_1.EventEmitter();
+        this.onFieldFocused = new core_1.EventEmitter();
     }
     Object.defineProperty(AddressForm.prototype, "address", {
         get: function () {
@@ -71,6 +72,17 @@ var AddressForm = (function () {
         }
         return false;
     };
+    AddressForm.prototype.focusOn = function (fieldName) {
+        this.onFieldFocused.emit(fieldName);
+    };
+    AddressForm.prototype.focusAway = function (fieldName) {
+        this.onFieldFocused.emit(null);
+    };
+    AddressForm.prototype.isParticipantSelected = function (fieldName) {
+        if (this.resolver) {
+            return this.resolver.isParticipantSelected(this.address, fieldName);
+        }
+    };
     return AddressForm;
 }());
 __decorate([
@@ -79,6 +91,10 @@ __decorate([
     __metadata("design:paramtypes", [address_model_1.Address])
 ], AddressForm.prototype, "address", null);
 __decorate([
+    core_1.Input(),
+    __metadata("design:type", Object)
+], AddressForm.prototype, "resolver", void 0);
+__decorate([
     core_1.Output(),
     __metadata("design:type", core_1.EventEmitter)
 ], AddressForm.prototype, "onAddressChanged", void 0);
@@ -86,6 +102,10 @@ __decorate([
     core_1.Output(),
     __metadata("design:type", core_1.EventEmitter)
 ], AddressForm.prototype, "onCanceled", void 0);
+__decorate([
+    core_1.Output(),
+    __metadata("design:type", core_1.EventEmitter)
+], AddressForm.prototype, "onFieldFocused", void 0);
 AddressForm = __decorate([
     core_1.Component({
         moduleId: module.id,

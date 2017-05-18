@@ -2,6 +2,8 @@ import {AddressBook, AddressBookWithData} from "../models/address-book.model";
 import {InjectionToken} from "@angular/core";
 import {Http, RequestOptions, Headers} from "@angular/http";
 import {IAuthenticationService} from "./auth.service";
+import {BehaviorSubject} from "rxjs/BehaviorSubject";
+import {Observable} from "rxjs/Observable";
 
 
 var ENABLE_MOCK_DATA_SERVICE = false;
@@ -32,6 +34,7 @@ export class LeaveMessage extends Message {
 export class NavigationMessage extends Message {
 
     addressName: string;
+    fieldName: string;
 
     constructor() {
         super();
@@ -42,17 +45,36 @@ export class NavigationMessage extends Message {
 
 export class AddressBookEditingSession {
 
-    constructor(private socket: WebSocket, connectHandler: () => void, messageHandler: (message: Message) => void) {
+    private currentParticipants: string[] = [];
+    private _participants: BehaviorSubject<string[]> = new BehaviorSubject([]);
+    public participants: Observable<string[]> = this._participants.asObservable();
+    private _navHandler: ((message: NavigationMessage) => void);
+
+    constructor(private username: string, private socket: WebSocket, connectHandler: () => void) {
         socket.onopen = (openEvent) => {
             connectHandler();
         };
         socket.onmessage = (msgEvent) => {
             let msg: Message = this.readMessage(msgEvent.data);
-            messageHandler(msg);
+            if (msg.type === "join") {
+                this.currentParticipants.push(msg.from);
+                this._participants.next(this.currentParticipants);
+            }
+            if (msg.type === "leave") {
+                this.currentParticipants.splice(this.currentParticipants.indexOf(msg.from), 1);
+                this._participants.next(this.currentParticipants);
+            }
+            if (msg.type === "nav" && this._navHandler) {
+                this._navHandler(<NavigationMessage>msg);
+            }
         };
         socket.onclose = (closeEvent) => {
             console.info("Detected a CLOSE event!");
         };
+    }
+
+    public navHandler(handler: (message: NavigationMessage) => void): void {
+        this._navHandler = handler;
     }
 
     private readMessage(rawMessage: string): Message {
@@ -63,10 +85,18 @@ export class AddressBookEditingSession {
         if (jsMessage.type === "leave") {
             return <LeaveMessage>jsMessage;
         }
-        if (jsMessage.type === "navigation") {
+        if (jsMessage.type === "nav") {
             return <NavigationMessage>jsMessage;
         }
         throw Error("Failed to parse message: " + rawMessage);
+    }
+
+    public sendNavigation(address: string, fieldName?: string): void {
+        let msg: NavigationMessage = new NavigationMessage();
+        msg.from = this.username;
+        msg.addressName = address;
+        msg.fieldName = fieldName;
+        this.socket.send(JSON.stringify(msg));
     }
 
     public close(): void {
@@ -82,7 +112,7 @@ export interface IDataService {
 
     getAddressBook(id: string): Promise<AddressBookWithData>;
 
-    editAddressBook(id: string, connectHandler: ()=>void, messageHandler: (message: Message)=>void): AddressBookEditingSession;
+    editAddressBook(id: string, connectHandler: () => void): AddressBookEditingSession;
 
     deleteAddressBook(id: string): Promise<boolean>;
 
@@ -135,11 +165,11 @@ export class RemoteDataService implements IDataService {
         return Promise.resolve(true);
     }
 
-    editAddressBook(id: string, connectHandler: () => void, messageHandler: (message: Message) => void): AddressBookEditingSession {
+    editAddressBook(id: string, connectHandler: () => void): AddressBookEditingSession {
         let url: string = this.endpoint("ws", "/editAddressBook/:bookId/:user", { bookId: id, user: this.authService.getAuthenticatedUser() });
         console.info("[RemoteDataService] Connecting to websocket at: " + url);
         let ws: WebSocket = new WebSocket(url);
-        return new AddressBookEditingSession(ws, connectHandler, messageHandler);
+        return new AddressBookEditingSession(this.authService.getAuthenticatedUser(), ws, connectHandler);
     }
 
 }
@@ -214,9 +244,8 @@ export class MockDataService implements IDataService {
         return Promise.resolve(true);
     }
 
-    editAddressBook(id: string): AddressBookEditingSession {
-        // TODO do something more appropriate here!
-        return null;
+    editAddressBook(id: string, connectHandler: () => void): AddressBookEditingSession {
+        return undefined;
     }
 
 }

@@ -3,8 +3,9 @@ import {Component, OnInit, Inject, OnDestroy} from "@angular/core";
 import {ActivatedRoute} from "@angular/router";
 import {IAuthenticationService} from "../services/auth.service";
 import {AddressBookWithData} from "../models/address-book.model";
-import {AddressBookEditingSession, IDataService} from "../services/data.service";
+import {AddressBookEditingSession, IDataService, NavigationMessage} from "../services/data.service";
 import {Address} from "../models/address.model";
+import {IParticipantSelectionResolver} from "./address.form";
 
 
 class Filters {
@@ -47,7 +48,7 @@ class Filters {
     templateUrl: "addressbook.page.html",
     styleUrls: ["addressbook.page.css"]
 })
-export class AddressBookPageComponent implements OnInit, OnDestroy {
+export class AddressBookPageComponent implements OnInit, OnDestroy, IParticipantSelectionResolver {
 
     private pageLoaded: boolean = false;
     private addressBook: AddressBookWithData;
@@ -56,6 +57,8 @@ export class AddressBookPageComponent implements OnInit, OnDestroy {
     private filteredAddresses: Address[];
     private selectedAddress: Address = null;
     private filters: Filters = new Filters();
+
+    private participantSelections: any = {};
 
     constructor(private route: ActivatedRoute, @Inject(IDataService) private data: IDataService) {
     }
@@ -69,8 +72,13 @@ export class AddressBookPageComponent implements OnInit, OnDestroy {
                 this.addressBook = book;
                 this.editingSession = this.data.editAddressBook(book.id, () => {
                     this.pageLoaded = true;
-                }, message => {
-                    console.info("[AddressBookPageComponent] Received message: " + message.type);
+                    this.editingSession.participants.subscribe( participants => {
+                        console.info("[AddressBookPageComponent] Participants now: " + participants);
+                    });
+                    this.editingSession.navHandler( (navMessage) => {
+                        console.info("[AddressBookPageComponent] Participant Selection Change: " + navMessage.addressName);
+                        this.participantSelections[navMessage.from] = navMessage;
+                    });
                 });
                 this.filter();
             });
@@ -86,6 +94,19 @@ export class AddressBookPageComponent implements OnInit, OnDestroy {
 
     public isSelected(address: Address): boolean {
         return this.selectedAddress === address;
+    }
+
+    public isParticipantSelected(address: Address, fieldName?: string): boolean {
+        for (let user in this.participantSelections) {
+            let selection: NavigationMessage = this.participantSelections[user];
+            if (selection && selection.addressName === address.name) {
+                if (!fieldName) {
+                    return true;
+                }
+                return fieldName == selection.fieldName;
+            }
+        }
+        return false;
     }
 
     public toSummary(address: Address): string {
@@ -125,10 +146,17 @@ export class AddressBookPageComponent implements OnInit, OnDestroy {
     }
 
     public toggleAddressSelected(address: Address): void {
+        console.info("[AddressBookPageComponent] Toggling selection: " + address.name);
         if (this.selectedAddress === address) {
             this.selectedAddress = null;
+            if (this.editingSession) {
+                this.editingSession.sendNavigation(null);
+            }
         } else {
             this.selectedAddress = address;
+            if (this.editingSession) {
+                this.editingSession.sendNavigation(address.name);
+            }
         }
     }
 
@@ -155,5 +183,13 @@ export class AddressBookPageComponent implements OnInit, OnDestroy {
                 address.country = updatedAddress.country;
             }
         });
+    }
+
+    public focusOnAddressField(fieldName: string): void {
+        this.editingSession.sendNavigation(this.selectedAddress.name, fieldName);
+    }
+
+    public resolver(): IParticipantSelectionResolver {
+        return this;
     }
 }

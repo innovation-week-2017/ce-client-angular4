@@ -1,38 +1,50 @@
 <form class="form-horizontal">
     <div class="form-group">
-        <label class="col-sm-2 control-label" for="address1">Address 1</label>
+        <label class="col-sm-2 control-label" for="address1">Address&nbsp;1</label>
         <div class="col-sm-10">
-            <input name="address1" type="text" id="address1" class="form-control" [(ngModel)]="model.address1">
+            <input name="address1" type="text" id="address1" class="form-control" [(ngModel)]="model.address1"
+                   [class.pselected]="isParticipantSelected('address1')"
+                   (focus)="focusOn('address1')" (blur)="focusAway('address1')">
         </div>
     </div>
     <div class="form-group">
-        <label class="col-sm-2 control-label" for="address2">Address 2</label>
+        <label class="col-sm-2 control-label" for="address2">Address&nbsp;2</label>
         <div class="col-sm-10">
-            <input name="address2" type="text" id="address2" class="form-control" [(ngModel)]="model.address2">
+            <input name="address2" type="text" id="address2" class="form-control" [(ngModel)]="model.address2"
+                   [class.pselected]="isParticipantSelected('address2')"
+                   (focus)="focusOn('address2')" (blur)="focusAway('address2')">
         </div>
     </div>
     <div class="form-group">
         <label class="col-sm-2 control-label" for="city">City</label>
         <div class="col-sm-10">
-            <input name="city" type="text" id="city" class="form-control" [(ngModel)]="model.city">
+            <input name="city" type="text" id="city" class="form-control" [(ngModel)]="model.city"
+                   [class.pselected]="isParticipantSelected('city')"
+                   (focus)="focusOn('city')" (blur)="focusAway('city')">
         </div>
     </div>
     <div class="form-group">
         <label class="col-sm-2 control-label" for="state">State</label>
         <div class="col-sm-10">
-            <input name="state" type="text" id="state" class="form-control" [(ngModel)]="model.state">
+            <input name="state" type="text" id="state" class="form-control" [(ngModel)]="model.state"
+                   [class.pselected]="isParticipantSelected('state')"
+                   (focus)="focusOn('state')" (blur)="focusAway('state')">
         </div>
     </div>
     <div class="form-group">
         <label class="col-sm-2 control-label" for="zip">Zip</label>
         <div class="col-sm-10">
-            <input name="zip" type="text" id="zip" class="form-control" [(ngModel)]="model.zip">
+            <input name="zip" type="text" id="zip" class="form-control" [(ngModel)]="model.zip"
+                   [class.pselected]="isParticipantSelected('zip')"
+                   (focus)="focusOn('zip')" (blur)="focusAway('zip')">
         </div>
     </div>
     <div class="form-group">
         <label class="col-sm-2 control-label" for="country">Country</label>
         <div class="col-sm-10">
-            <input name="country" type="text" id="country" class="form-control" [(ngModel)]="model.country">
+            <input name="country" type="text" id="country" class="form-control" [(ngModel)]="model.country"
+                   [class.pselected]="isParticipantSelected('country')"
+                   (focus)="focusOn('country')" (blur)="focusAway('country')">
         </div>
     </div>
     <div class="form-group">

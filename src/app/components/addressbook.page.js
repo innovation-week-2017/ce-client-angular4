@@ -48,6 +48,7 @@ var AddressBookPageComponent = (function () {
         this.pageLoaded = false;
         this.selectedAddress = null;
         this.filters = new Filters();
+        this.participantSelections = {};
     }
     AddressBookPageComponent.prototype.ngOnInit = function () {
         var _this = this;
@@ -59,8 +60,13 @@ var AddressBookPageComponent = (function () {
                 _this.addressBook = book;
                 _this.editingSession = _this.data.editAddressBook(book.id, function () {
                     _this.pageLoaded = true;
-                }, function (message) {
-                    console.info("[AddressBookPageComponent] Received message: " + message.type);
+                    _this.editingSession.participants.subscribe(function (participants) {
+                        console.info("[AddressBookPageComponent] Participants now: " + participants);
+                    });
+                    _this.editingSession.navHandler(function (navMessage) {
+                        console.info("[AddressBookPageComponent] Participant Selection Change: " + navMessage.addressName);
+                        _this.participantSelections[navMessage.from] = navMessage;
+                    });
                 });
                 _this.filter();
             });
@@ -74,6 +80,18 @@ var AddressBookPageComponent = (function () {
     };
     AddressBookPageComponent.prototype.isSelected = function (address) {
         return this.selectedAddress === address;
+    };
+    AddressBookPageComponent.prototype.isParticipantSelected = function (address, fieldName) {
+        for (var user in this.participantSelections) {
+            var selection = this.participantSelections[user];
+            if (selection && selection.addressName === address.name) {
+                if (!fieldName) {
+                    return true;
+                }
+                return fieldName == selection.fieldName;
+            }
+        }
+        return false;
     };
     AddressBookPageComponent.prototype.toSummary = function (address) {
         return address.address1 + " " + address.city + ", " + address.state + " " + address.zip;
@@ -110,11 +128,18 @@ var AddressBookPageComponent = (function () {
         this.filter();
     };
     AddressBookPageComponent.prototype.toggleAddressSelected = function (address) {
+        console.info("[AddressBookPageComponent] Toggling selection: " + address.name);
         if (this.selectedAddress === address) {
             this.selectedAddress = null;
+            if (this.editingSession) {
+                this.editingSession.sendNavigation(null);
+            }
         }
         else {
             this.selectedAddress = address;
+            if (this.editingSession) {
+                this.editingSession.sendNavigation(address.name);
+            }
         }
     };
     AddressBookPageComponent.prototype.clearFilters = function () {
@@ -138,6 +163,12 @@ var AddressBookPageComponent = (function () {
                 address.country = updatedAddress.country;
             }
         });
+    };
+    AddressBookPageComponent.prototype.focusOnAddressField = function (fieldName) {
+        this.editingSession.sendNavigation(this.selectedAddress.name, fieldName);
+    };
+    AddressBookPageComponent.prototype.resolver = function () {
+        return this;
     };
     return AddressBookPageComponent;
 }());
