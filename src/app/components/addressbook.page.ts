@@ -3,7 +3,7 @@ import {Component, OnInit, Inject, OnDestroy} from "@angular/core";
 import {ActivatedRoute} from "@angular/router";
 import {IAuthenticationService} from "../services/auth.service";
 import {AddressBookWithData} from "../models/address-book.model";
-import {IDataService} from "../services/data.service";
+import {AddressBookEditingSession, IDataService} from "../services/data.service";
 import {Address} from "../models/address.model";
 
 
@@ -51,6 +51,7 @@ export class AddressBookPageComponent implements OnInit, OnDestroy {
 
     private pageLoaded: boolean = false;
     private addressBook: AddressBookWithData;
+    private editingSession: AddressBookEditingSession;
 
     private filteredAddresses: Address[];
     private selectedAddress: Address = null;
@@ -66,7 +67,11 @@ export class AddressBookPageComponent implements OnInit, OnDestroy {
             let bookId: string = value["bookId"];
             this.data.getAddressBook(bookId).then( book => {
                 this.addressBook = book;
-                this.pageLoaded = true;
+                this.editingSession = this.data.editAddressBook(book.id, () => {
+                    this.pageLoaded = true;
+                }, message => {
+                    console.info("[AddressBookPageComponent] Received message: " + message.type);
+                });
                 this.filter();
             });
         });
@@ -74,6 +79,9 @@ export class AddressBookPageComponent implements OnInit, OnDestroy {
 
     public ngOnDestroy(): void {
         console.info("[AddressBookPageComponent] Destroy");
+        if (this.editingSession) {
+            this.editingSession.close();
+        }
     }
 
     public isSelected(address: Address): boolean {

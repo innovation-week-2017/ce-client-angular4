@@ -57,13 +57,20 @@ var AddressBookPageComponent = (function () {
             var bookId = value["bookId"];
             _this.data.getAddressBook(bookId).then(function (book) {
                 _this.addressBook = book;
-                _this.pageLoaded = true;
+                _this.editingSession = _this.data.editAddressBook(book.id, function () {
+                    _this.pageLoaded = true;
+                }, function (message) {
+                    console.info("[AddressBookPageComponent] Received message: " + message.type);
+                });
                 _this.filter();
             });
         });
     };
     AddressBookPageComponent.prototype.ngOnDestroy = function () {
         console.info("[AddressBookPageComponent] Destroy");
+        if (this.editingSession) {
+            this.editingSession.close();
+        }
     };
     AddressBookPageComponent.prototype.isSelected = function (address) {
         return this.selectedAddress === address;

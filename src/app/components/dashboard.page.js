@@ -24,7 +24,6 @@ var DashboardPageComponent = (function () {
         this.books = dataService.getAddressBooks();
     }
     DashboardPageComponent.prototype.addressBooks = function () {
-        console.info("Getting address books.");
         return this.books;
     };
     return DashboardPageComponent;

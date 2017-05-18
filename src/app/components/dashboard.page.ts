@@ -23,7 +23,6 @@ export class DashboardPageComponent {
     }
 
     addressBooks(): Promise<AddressBook[]> {
-        console.info("Getting address books.");
         return this.books;
     }
 
