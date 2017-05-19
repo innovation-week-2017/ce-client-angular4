@@ -8,6 +8,7 @@ var core_1 = require("@angular/core");
 var http_1 = require("@angular/http");
 var auth_service_1 = require("./auth.service");
 var BehaviorSubject_1 = require("rxjs/BehaviorSubject");
+var address_model_1 = require("../models/address.model");
 var ENABLE_MOCK_DATA_SERVICE = false;
 var Message = (function () {
     function Message() {
@@ -148,6 +149,12 @@ var AddressBookEditingSession = (function () {
         msg.fieldName = fieldName;
         this.socket.send(JSON.stringify(msg));
     };
+    AddressBookEditingSession.prototype.sendCreate = function (address) {
+        var msg = new CreateMessage();
+        msg.from = this.username;
+        msg.address = address;
+        this.socket.send(JSON.stringify(msg));
+    };
     AddressBookEditingSession.prototype.sendDelete = function (name) {
         var msg = new DeleteMessage();
         msg.from = this.username;
@@ -212,6 +219,27 @@ var RemoteDataService = (function () {
         console.info("[RemoteDataService] Connecting to websocket at: " + url);
         var ws = new WebSocket(url);
         return new AddressBookEditingSession(this.authService.getAuthenticatedUser(), ws, connectHandler);
+    };
+    RemoteDataService.prototype.generateRandomAddress = function () {
+        var _this = this;
+        var headers = new http_1.Headers({ "Accept": "application/json" });
+        var options = new http_1.RequestOptions({
+            headers: headers
+        });
+        return this.http.get("https://randomuser.me/api/", options).map(function (response) {
+            var rdata = response.json().results[0];
+            console.info(JSON.stringify(rdata));
+            var address = new address_model_1.Address();
+            address.name = _this.capitalize(rdata.name.first) + " " + _this.capitalize(rdata.name.last);
+            address.address1 = _this.capitalize(rdata.location.street);
+            address.city = _this.capitalize(rdata.location.city);
+            address.state = _this.capitalize(rdata.location.state);
+            address.zip = ("" + rdata.location.postcode).toUpperCase();
+            return address;
+        }).toPromise();
+    };
+    RemoteDataService.prototype.capitalize = function (str) {
+        return str.charAt(0).toUpperCase() + str.slice(1);
     };
     return RemoteDataService;
 }());
@@ -281,6 +309,9 @@ var MockDataService = (function () {
         return Promise.resolve(true);
     };
     MockDataService.prototype.editAddressBook = function (id, connectHandler) {
+        return undefined;
+    };
+    MockDataService.prototype.generateRandomAddress = function () {
         return undefined;
     };
     return MockDataService;

@@ -18,7 +18,7 @@
                     <button class="btn btn-danger" type="button" [disabled]="selectedAddress === null" (click)="deleteSelectedAddresses()">Delete</button>
                 </div>
                 <div class="form-group">
-                    <button class="btn btn-default">Add Address</button>
+                    <button class="btn btn-default" (click)="addAddress()">Add Address</button>
                 </div>
                 <div class="form-group pull-right">
                     <a [routerLink]="['/']">(back to dashboard)</a>
@@ -28,6 +28,9 @@
                 <div class="col-sm-12">
                     <h5>{{ filteredAddresses.length }} Addresses found <a *ngIf="addressBook.addresses.length != filteredAddresses.length"
                             class="clear-filters" (click)="clearFilters()">(out of {{ addressBook.addresses.length }} total)</a></h5>
+                    <h5 class="participants pull-right">
+                        <a class="participant" *ngFor="let participant of participants() | async" title="{{ participant }}"><span class="fa fa-fw fa-user"></span></a>
+                    </h5>
                 </div>
             </div>
         </div>
@@ -59,7 +62,7 @@
 
         <!-- Selected Address Card -->
         <div class="col-md-6" *ngIf="selectedAddress !== null">
-            <div class="card-pf card-pf-accented">
+            <div class="card-pf card-pf-accented address-card">
                 <div class="card-pf-heading">
                     <h2 class="card-pf-title">
                         <span class="fa fa-fw fa-address-card"></span>

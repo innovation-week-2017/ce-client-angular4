@@ -47,7 +47,7 @@ export class NavigationMessage extends Message {
 
 export class CreateMessage extends Message {
 
-    addressName: string;
+    address: Address;
 
     constructor() {
         super();
@@ -159,6 +159,13 @@ export class AddressBookEditingSession {
         this.socket.send(JSON.stringify(msg));
     }
 
+    public sendCreate(address: Address): void {
+        let msg: CreateMessage = new CreateMessage();
+        msg.from = this.username;
+        msg.address = address;
+        this.socket.send(JSON.stringify(msg));
+    }
+
     public sendDelete(name: string): void {
         let msg: DeleteMessage = new DeleteMessage();
         msg.from = this.username;
@@ -189,6 +196,8 @@ export interface IDataService {
     editAddressBook(id: string, connectHandler: () => void): AddressBookEditingSession;
 
     deleteAddressBook(id: string): Promise<boolean>;
+
+    generateRandomAddress(): Promise<Address>;
 
 }
 export const IDataService = new InjectionToken("IDataService");
@@ -245,6 +254,29 @@ export class RemoteDataService implements IDataService {
         let ws: WebSocket = new WebSocket(url);
         return new AddressBookEditingSession(this.authService.getAuthenticatedUser(), ws, connectHandler);
     }
+
+    generateRandomAddress(): Promise<Address> {
+        let headers: Headers = new Headers({ "Accept": "application/json" });
+        let options = new RequestOptions({
+            headers: headers
+        });
+        return this.http.get("https://randomuser.me/api/", options).map( response => {
+            let rdata: any = response.json().results[0];
+            console.info(JSON.stringify(rdata));
+            let address: Address = new Address();
+            address.name = this.capitalize(rdata.name.first) + " " + this.capitalize(rdata.name.last);
+            address.address1 = this.capitalize(rdata.location.street);
+            address.city = this.capitalize(rdata.location.city);
+            address.state = this.capitalize(rdata.location.state);
+            address.zip = ("" + rdata.location.postcode).toUpperCase();
+            return address;
+        }).toPromise();
+    }
+
+    private capitalize(str: string): string {
+        return str.charAt(0).toUpperCase() + str.slice(1);
+    }
+
 
 }
 
@@ -319,6 +351,10 @@ export class MockDataService implements IDataService {
     }
 
     editAddressBook(id: string, connectHandler: () => void): AddressBookEditingSession {
+        return undefined;
+    }
+
+    generateRandomAddress(): Promise<Address> {
         return undefined;
     }
 

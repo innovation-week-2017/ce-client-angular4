@@ -73,7 +73,8 @@ var AddressBookPageComponent = (function () {
                     _this.editingSession.commandHandler(function (message) {
                         console.info("[AddressBookPageComponent] Participant executed command: " + message.type);
                         if (message.type === "create") {
-                            var command = new create_command_1.CreateAddressCommand(message.addressName);
+                            console.info("Create command: " + JSON.stringify(message));
+                            var command = new create_command_1.CreateAddressCommand(message.address);
                             command.execute(_this.addressBook);
                             _this.filter();
                         }
@@ -166,6 +167,15 @@ var AddressBookPageComponent = (function () {
         this.filters.nameFilter = "";
         this.filter();
     };
+    AddressBookPageComponent.prototype.addAddress = function () {
+        var _this = this;
+        this.data.generateRandomAddress().then(function (address) {
+            var command = new create_command_1.CreateAddressCommand(address);
+            command.execute(_this.addressBook);
+            _this.editingSession.sendCreate(address);
+            _this.filter();
+        });
+    };
     AddressBookPageComponent.prototype.deleteSelectedAddresses = function () {
         var command = new delete_command_1.DeleteAddressCommand(this.selectedAddress.name);
         command.execute(this.addressBook);
@@ -183,6 +193,9 @@ var AddressBookPageComponent = (function () {
     };
     AddressBookPageComponent.prototype.resolver = function () {
         return this;
+    };
+    AddressBookPageComponent.prototype.participants = function () {
+        return this.editingSession.participants;
     };
     return AddressBookPageComponent;
 }());

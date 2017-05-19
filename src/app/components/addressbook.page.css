@@ -14,3 +14,21 @@
     margin-top: 20px;
     margin-right: 20px;
 }
+
+.participants {
+}
+
+.participants .participant {
+    font-size: 21px;
+    color: indianred;
+    cursor: pointer;
+}
+
+.address-card {
+    position: fixed;
+    width: 47%;
+}
+
+.list-view-pf-description {
+    width: 90%;
+}

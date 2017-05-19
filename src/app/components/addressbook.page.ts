@@ -10,6 +10,7 @@ import {UpdateAddressCommand} from "../commands/update.command";
 import {ICommand} from "../commands/command";
 import {DeleteAddressCommand} from "../commands/delete.command";
 import {CreateAddressCommand} from "../commands/create.command";
+import {Observable} from "rxjs/Observable";
 
 
 class Filters {
@@ -86,7 +87,8 @@ export class AddressBookPageComponent implements OnInit, OnDestroy, IParticipant
                     this.editingSession.commandHandler( (message) => {
                         console.info("[AddressBookPageComponent] Participant executed command: " + message.type);
                         if (message.type === "create") {
-                            let command: ICommand = new CreateAddressCommand((<any>message).addressName);
+                            console.info("Create command: " + JSON.stringify(message));
+                            let command: ICommand = new CreateAddressCommand((<any>message).address);
                             command.execute(this.addressBook);
                             this.filter();
                         }
@@ -186,6 +188,15 @@ export class AddressBookPageComponent implements OnInit, OnDestroy, IParticipant
         this.filter();
     }
 
+    public addAddress(): void {
+        this.data.generateRandomAddress().then( address => {
+            let command: ICommand = new CreateAddressCommand(address);
+            command.execute(this.addressBook);
+            this.editingSession.sendCreate(address);
+            this.filter();
+        });
+    }
+
     public deleteSelectedAddresses(): void {
         let command: ICommand = new DeleteAddressCommand(this.selectedAddress.name);
         command.execute(this.addressBook);
@@ -209,5 +220,9 @@ export class AddressBookPageComponent implements OnInit, OnDestroy, IParticipant
 
     public resolver(): IParticipantSelectionResolver {
         return this;
+    }
+
+    public participants(): Observable<string[]> {
+        return this.editingSession.participants;
     }
 }
